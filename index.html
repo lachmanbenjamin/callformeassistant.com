@@ -865,9 +865,9 @@
           </form>
 
           <div class="beta-progress">
-            <p class="beta-progress__text">100 beta spots available — <strong id="beta-remaining">72</strong> remaining</p>
-            <div class="beta-progress__bar" role="progressbar" aria-valuenow="28" aria-valuemin="0" aria-valuemax="100" aria-label="Beta signup progress">
-              <div class="beta-progress__fill" id="beta-fill" style="width: 28%;"></div>
+            <p class="beta-progress__text">100 beta spots available — <strong id="beta-remaining">100</strong> remaining</p>
+            <div class="beta-progress__bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Beta signup progress">
+              <div class="beta-progress__fill" id="beta-fill" style="width: 0%;"></div>
             </div>
           </div>
         </div>
@@ -1095,7 +1095,20 @@
       var msgEl = document.getElementById('beta-msg');
       var remainingEl = document.getElementById('beta-remaining');
       var fillEl = document.getElementById('beta-fill');
+      // REPLACE THIS URL after deploying the Google Apps Script
       var ENDPOINT = 'https://script.google.com/macros/s/PLACEHOLDER/exec';
+
+      // Fetch current beta count on page load
+      if (ENDPOINT.indexOf('PLACEHOLDER') === -1) {
+        fetch(ENDPOINT)
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.remaining !== undefined) {
+              updateRemaining(data.remaining);
+            }
+          })
+          .catch(function() {});
+      }
       var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       form.addEventListener('submit', function(e) {
