@@ -1135,10 +1135,12 @@
         submitBtn.insertBefore(spinner, btnText);
 
         // POST to Google Apps Script
+        // Use text/plain to avoid CORS preflight (Apps Script doesn't handle OPTIONS)
         fetch(ENDPOINT, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email, timestamp: new Date().toISOString() })
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ email: email, timestamp: new Date().toISOString() }),
+          redirect: 'follow'
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
@@ -1155,7 +1157,7 @@
           emailInput.value = '';
         })
         .catch(function() {
-          // Fallback for placeholder URL or network errors
+          // Fallback for network errors
           showMsg("Thanks for your interest! We're setting up signups — check back soon.", 'success');
           emailInput.value = '';
         })
