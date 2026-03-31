@@ -1134,23 +1134,24 @@
         spinner.setAttribute('aria-hidden', 'true');
         submitBtn.insertBefore(spinner, btnText);
 
-        // POST to Google Apps Script
-        // Use text/plain to avoid CORS preflight (Apps Script doesn't handle OPTIONS)
+        // POST to Google Apps Script using no-cors to bypass redirect CORS issues,
+        // then follow up with a GET to check updated count
         fetch(ENDPOINT, {
           method: 'POST',
+          mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ email: email, timestamp: new Date().toISOString() }),
-          redirect: 'follow'
+          body: JSON.stringify({ email: email, timestamp: new Date().toISOString() })
+        })
+        .then(function() {
+          // no-cors means opaque response, so GET the endpoint to check count
+          return fetch(ENDPOINT);
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
-          if (data.status === 'beta') {
-            showMsg("You're in! Check your email for next steps.", 'success');
-            updateRemaining(data.remaining);
-          } else if (data.status === 'waitlist') {
-            showMsg("You're on the waitlist! Position #" + data.position + ". We'll notify you when a spot opens.", 'success');
-          } else if (data.status === 'duplicate') {
-            showMsg("You're already signed up! Check your email for details.", 'success');
+          var spotsLeft = data.remaining !== undefined ? data.remaining : 100;
+          updateRemaining(spotsLeft);
+          if (spotsLeft === 0) {
+            showMsg("Beta is full! You've been added to the waitlist. We'll notify you when a spot opens.", 'success');
           } else {
             showMsg("You're in! Check your email for next steps.", 'success');
           }
@@ -1158,8 +1159,7 @@
         })
         .catch(function() {
           // Fallback for network errors
-          showMsg("Thanks for your interest! We're setting up signups — check back soon.", 'success');
-          emailInput.value = '';
+          showMsg("Something went wrong. Please try again.", 'error');
         })
         .finally(function() {
           submitBtn.disabled = false;
